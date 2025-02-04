@@ -8,6 +8,8 @@ body{
     color: #FFFFFF;
     display: flex;
     justify-content: center;
+    align-items: center;
+    height: 100vh;
     flex-wrap: wrap;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
@@ -20,7 +22,6 @@ body{
     align-items: center;
     height: 90%;
     width: 90%;
-    margin-top: 5%;
 }
 
 #inner_container{
