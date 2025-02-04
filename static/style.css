@@ -1,0 +1,136 @@
+*{
+    margin: 0;
+    padding: 0;
+}
+
+body{
+    background-color: #121212;
+    color: #FFFFFF;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+#container{
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    border: 2px solid #FFC107;
+    align-items: center;
+    height: 90%;
+    width: 90%;
+    margin-top: 5%;
+}
+
+#inner_container{
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    margin: 5%;
+    font-size: large;
+}
+
+#welcome{
+    margin-top: 5%;
+}
+
+#namebox, #codebox{
+    padding: 15px;
+}
+
+#name{
+    height: 30px;
+    width: 58%;
+    padding-left: 5px;
+    border: 1px solid black;
+    border-radius: 5px;
+    font-size: large;
+}
+
+#code{
+    height: 30px;
+    width: 30%;
+    margin-left: 6px;
+    padding-left: 5px;
+    border: 1px solid black;
+    border-radius: 5px;
+    font-size: large;
+}
+
+#join_room{
+    height: 34px;
+    width: 25%;
+    margin-left: 6px;
+    font-size: large;
+    background-color: #FFC107;
+    border: 1px solid black;
+    border-radius: 5px;
+}
+
+#create_room{
+    height: 40px;
+    width: 80%;
+    background-color: #FFC107;
+    font-size: large;
+    color: black;
+    align-items: center;
+    margin: 20px;
+    border: 1px solid black;
+    border-radius: 5px;
+}
+
+#errormsg{
+    margin: 30px;
+    color: rgb(255, 63, 63);
+    font-weight: 200;
+}
+
+#online{
+    color: lime;
+}
+
+.room{
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    height: 90%;
+    width: 95%;
+}
+
+#screen{
+    height: 490px;
+    border-top: 1px solid white;
+    border-bottom: 1px solid white;
+    overflow-y: auto;
+}
+
+.send_msg{
+    display: flex;
+    justify-content: center;
+    height: fit-content;
+    width: 100%;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+#content{
+    height: 38px;
+    width: 80%;
+    border-radius: 10px;
+    padding-left: 5px;
+    padding-right: 5px;
+    font-size: 15px;
+}
+
+#send{
+    height: 38px;
+    width: 90px;
+    margin-left: 6px;
+    font-size: large;
+    background-color: #FFC107;
+    border: 1px solid black;
+    border-radius: 15px;
+    padding: 2px;
+}

@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h2 id="welcome">Welcome, User</h2>
+
+{% if error %}
+<h3 id="errormsg">{{error}}</h3>
+{% endif %}
+
+<div id="inner_container">
+    <form method="post">
+        <div id="namebox">
+            <label for="name">Enter Name : </label>
+            <input type="text" name="name" id="name" value="{{name}}">
+        </div>
+
+        <div id="codebox">
+            <label for="code">Enter Code : </label>
+            <input type="text" name="code" id="code" value="{{code}}">
+            <button id="join_room" name="join">Join</button>
+        </div>
+
+        <button id="create_room" name="create">Create Room</button>
+    </form>
+</div>
+
+{% endblock %}

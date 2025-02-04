@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h4 id="online">Online : {{online}}</h4>
+<h3 id="code_display">Room code : {{ code }}</h3>
+<div class="room">
+    <div id="screen">
+        
+    </div>
+    <div class="send_msg">
+        <textarea name="content" id="content"></textarea>
+        <button onclick="sendMessage()" id="send">Send</button>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var socket = io();
+    let screen = document.getElementById('screen');
+    let online = document.getElementById('online');
+    const createmsg = (name, msg) => {
+        content = `<div class="text">
+            <span>
+                <strong>${name} : </strong> ${msg}
+            </span>
+        </div>`;
+        screen.innerHTML += content;
+        screen.scrollTop = screen.scrollHeight;
+    };
+
+    socket.on("update_online", (data) => {
+        online.innerText = `Online : ${data.online}`;
+    });
+
+    socket.on('message', (data) => {
+        createmsg(data.name, data.message)
+    });
+
+    const sendMessage = () => {
+        let message = document.getElementById('content');
+        if(message.value == "")
+        {
+            return;
+        }
+        socket.emit('message', {"message" : message.value});
+        message.value = "";
+    };
+</script>
+
+{% for m in messages %}
+<script type="text/javascript">
+    createmsg("{{m.name}}", "{{m.message}}")
+</script>
+{% endfor %}
+
+{% endblock %}
