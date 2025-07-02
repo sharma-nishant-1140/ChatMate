@@ -1,9 +1,11 @@
+import eventlet
+eventlet.monkey_patch()
+
 from flask import Flask, render_template, redirect, url_for, session, request
 from flask_socketio import SocketIO, join_room, leave_room, send
 import os
 from dotenv import load_dotenv
 import random
-import eventlet
 
 load_dotenv()
 
@@ -110,8 +112,6 @@ def message(data):
     }
     send(content, to = room)
     rooms[room]["messages"].append(content)
-
-eventlet.monkey_patch()
 
 
 if __name__ == "__main__":
