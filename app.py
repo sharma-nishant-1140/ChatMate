@@ -13,7 +13,7 @@ app = Flask(__name__)
 
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
-socket = SocketIO(app)
+socket = SocketIO(app, async_mode='eventlet')
 
 rooms = {}
 
