@@ -3,6 +3,7 @@ from flask_socketio import SocketIO, join_room, leave_room, send
 import os
 from dotenv import load_dotenv
 import random
+import eventlet
 
 load_dotenv()
 
@@ -110,5 +111,8 @@ def message(data):
     send(content, to = room)
     rooms[room]["messages"].append(content)
 
+eventlet.monkey_patch()
+
+
 if __name__ == "__main__":
-    socket.run(app, debug=True)
+    socket.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
