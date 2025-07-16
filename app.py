@@ -1,7 +1,7 @@
 import eventlet
 eventlet.monkey_patch()
 
-from flask import Flask, render_template, redirect, url_for, session, request
+from flask import Flask, render_template, redirect, url_for, session, request, jsonify
 from flask_socketio import SocketIO, join_room, leave_room, send
 import os
 from dotenv import load_dotenv
@@ -24,45 +24,74 @@ def generate_code(code_list):
         code = random.randint(10000,100000)
     return str(code)
 
-@app.route('/', methods=['GET','POST'])
-def home(): 
-    session.clear()
-    if request.method == 'POST':
-        name = request.form.get('name')
-        code = request.form.get('code')
-        join = request.form.get('join', False)
-        create = request.form.get('create', False)
+@app.route('/')
+def home():
+    return "Backend is running !"
 
-        if not name:
-            return render_template("home.html", error="Please Enter Name !", code = code, name = name)
+@app.route('/api/create_room', methods=['POST'])
+def create_room():
+    name = request.json.get('name')
+    if not name:
+        return jsonify({"error": "Name is required !"}), 400
+    
+    code = generate_code(list(rooms.keys()))
+    rooms[code] = {"members": 0, "messages": []}
 
-        if create != False:
-            code = generate_code(list(rooms.keys()))
-            new_room = {
-                "members" : 0,
-                "messages" : []
-            }
-            rooms[code] = new_room
+    return jsonify({"roomId": code})
 
-        if join != False:
-            if code == "":
-                return render_template("home.html", error="Please Enter code !", name = name)
-            if code not in rooms.keys():
-                return render_template("home.html", error="Code Invalid !", name = name)
+@app.route('/api/join_room', methods=['POST'])
+def join_room():
+    name = request.json.get('name')
+    if not name:
+        return jsonify({"error": "Name is required !"}), 400
+    
+    code = request.json.get('code')
+    if not code:
+        return jsonify({"error": "Room code is required !"}), 400
+    if code not in rooms:
+        return jsonify({"error": "Room code does not exist !"}), 400
+
+    return jsonify({"roomId": code})
+
+# @app.route('/', methods=['GET','POST'])
+# def home(): 
+#     session.clear()
+#     if request.method == 'POST':
+#         name = request.form.get('name')
+#         code = request.form.get('code')
+#         join = request.form.get('join', False)
+#         create = request.form.get('create', False)
+
+#         if not name:
+#             return render_template("home.html", error="Please Enter Name !", code = code, name = name)
+
+#         if create != False:
+#             code = generate_code(list(rooms.keys()))
+#             new_room = {
+#                 "members" : 0,
+#                 "messages" : []
+#             }
+#             rooms[code] = new_room
+
+#         if join != False:
+#             if code == "":
+#                 return render_template("home.html", error="Please Enter code !", name = name)
+#             if code not in rooms.keys():
+#                 return render_template("home.html", error="Code Invalid !", name = name)
         
-        session['name'] = name
-        session['room'] = code
-        print(session)
-        return redirect(url_for("chatroom"))
+#         session['name'] = name
+#         session['room'] = code
+#         print(session)
+#         return redirect(url_for("chatroom"))
         
-    return render_template('home.html')
+#     return render_template('home.html')
 
-@app.route('/room')
-def chatroom():
-    room = session.get('room')
-    if room == None or session.get('name') == None or room not in rooms:
-        return redirect(url_for("home"))
-    return render_template('chatroom.html', code = room, online = rooms[room]["members"], messages=rooms[room]["messages"])
+# @app.route('/room')
+# def chatroom():
+#     room = session.get('room')
+#     if room == None or session.get('name') == None or room not in rooms:
+#         return redirect(url_for("home"))
+#     return render_template('chatroom.html', code = room, online = rooms[room]["members"], messages=rooms[room]["messages"])
 
 @socket.on("connect")
 def connect(auth):

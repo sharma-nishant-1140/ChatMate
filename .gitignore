@@ -8,3 +8,10 @@ __pycache__/
 
 # Ignore system files
 .DS_Store
+
+# Ignore node_modules
+react-frontend/node_modules/
+
+# Ignore React build outputs
+react-frontend/dist/
+react-frontend/build/
