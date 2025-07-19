@@ -3,6 +3,7 @@ eventlet.monkey_patch()
 
 from flask import Flask, render_template, redirect, url_for, session, request, jsonify
 from flask_socketio import SocketIO, join_room, leave_room, send
+from flask_cors import CORS
 import os
 from dotenv import load_dotenv
 import random
@@ -13,10 +14,12 @@ app = Flask(__name__)
 
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
-socket = SocketIO(app, async_mode='eventlet')
+CORS(app, supports_credentials=True)
+
+socket = SocketIO(app, async_mode='eventlet', cors_allowed_origins="*")
 
 rooms = {}
-
+socket_users = {}
 
 def generate_code(code_list):
     code = random.randint(10000,100000)
@@ -31,20 +34,21 @@ def home():
 @app.route('/api/create_room', methods=['POST'])
 def create_room():
     name = request.json.get('name')
+    print("Creating room for:", name)
     if not name:
         return jsonify({"error": "Name is required !"}), 400
-    
+
     code = generate_code(list(rooms.keys()))
     rooms[code] = {"members": 0, "messages": []}
 
     return jsonify({"roomId": code})
 
 @app.route('/api/join_room', methods=['POST'])
-def join_room():
+def join_room_route():
     name = request.json.get('name')
     if not name:
         return jsonify({"error": "Name is required !"}), 400
-    
+
     code = request.json.get('code')
     if not code:
         return jsonify({"error": "Room code is required !"}), 400
@@ -52,6 +56,75 @@ def join_room():
         return jsonify({"error": "Room code does not exist !"}), 400
 
     return jsonify({"roomId": code})
+
+@socket.on("connect")
+def connect(auth):
+    if not auth or not auth.get("name") or not auth.get("room"):
+        raise ConnectionRefusedError("Name and room are required to connect.")
+
+    name = auth["name"]
+    room = auth["room"]
+
+    if room not in rooms:
+        raise ConnectionRefusedError("Room doesn't exist")
+
+    sid = request.sid
+    socket_users[sid] = {"name": name, "room": room}
+
+    join_room(room)
+    rooms[room]["members"] += 1
+
+    usernames = [user["name"] for sid, user in socket_users.items() if user["room"] == room]
+    socket.emit("user_list", usernames, to=room)
+
+    socket.emit("update_online", {"online": rooms[room]["members"]}, to=room)
+    send({"name": name, "message": "has joined the room !"}, to=room)
+
+    print(f"{name} joined room {room}!")
+
+@socket.on("disconnect")
+def disconnect():
+    sid = request.sid
+    user = socket_users.pop(sid, None)
+
+    if user:
+        name = user["name"]
+        room = user["room"]
+
+        leave_room(room)
+        send({"name": name, "message": "has left !"}, to=room)
+
+        if room in rooms:
+            rooms[room]["members"] -= 1
+            if rooms[room]["members"] == 0:
+                del rooms[room]
+
+        print(f"{name} has left the room !")
+
+@socket.on("message")
+def message(data):
+    sid = request.sid
+    user = socket_users.get(sid)
+    if not user:
+        return
+
+    room = user["room"]
+    name = user["name"]
+
+    if room not in rooms:
+        return
+
+    content = {
+        "name": name,
+        "message": data["message"]
+    }
+
+    send(content, to=room)
+    rooms[room]["messages"].append(content)
+
+if __name__ == "__main__":
+    socket.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+
 
 # @app.route('/', methods=['GET','POST'])
 # def home(): 
@@ -92,56 +165,3 @@ def join_room():
 #     if room == None or session.get('name') == None or room not in rooms:
 #         return redirect(url_for("home"))
 #     return render_template('chatroom.html', code = room, online = rooms[room]["members"], messages=rooms[room]["messages"])
-
-@socket.on("connect")
-def connect(auth):
-    room = session.get("room")
-    name = session.get("name")
-
-    if not room or not name:
-        return
-    
-    if room not in rooms:
-        leave_room(room)
-        return
-    
-    join_room(room)
-    rooms[room]["members"] += 1
-
-    socket.emit("update_online", {"online": rooms[room]["members"]}, to=room)
-    send({"name" : name, "message" : "has joined the room !"}, to=room)
-
-    print(f"{name} joined !")
-    
-@socket.on("disconnect")
-def disconnect():
-    room = session.get("room")
-    name = session.get("name")
-    leave_room(room)
-    send({"name" : name, "message" : "has left !"}, to=room)
-
-    if room in rooms:
-        rooms[room]["members"] -= 1
-        if rooms[room]["members"] == 0:
-            del rooms[room]
-    
-    session.pop("room", None)
-    session.pop("name", None)
-    
-    print(f"{name} has left the room !")
-
-@socket.on("message")
-def message(data):
-    room = session.get('room')
-    if room not in rooms:
-        return
-    content = {
-        "name" : session.get('name'),
-        "message" : data["message"]
-    }
-    send(content, to = room)
-    rooms[room]["messages"].append(content)
-
-
-if __name__ == "__main__":
-    socket.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))

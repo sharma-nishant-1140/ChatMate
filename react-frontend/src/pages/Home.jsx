@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { io } from 'socket.io-client';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -11,18 +12,38 @@ export default function Home() {
   const navigate = useNavigate();
 
   const handleCreateRoom = async () => {
-    try {
+    if (!name.trim()) {
+      seterror("Name is required to create a room.");
+      return;
+    }
+    seterror("");
+    try { 
       const res = await axios.post("http://localhost:5000/api/create_room", { name });
-      navigate(`/room/${res.data.roomId}`);
+      const roomId = res.data.roomId;
+      navigate("/chatroom", { state: { name, roomId } });
     } catch (err) {
+      console.log(err);
       seterror("Error creating room. Please try again.");
     }
   };
 
   const handleJoinRoom = async () => {
+    if (!name.trim() && !roomId.trim()) {
+      seterror("Both name and code are required to join a room.");
+      return;
+    }
+    else if (!name.trim()) {
+      seterror("Name is required to join a room.");
+      return;
+    }
+    else if (!roomId.trim()) {
+      seterror("Room code is required to join a room.");
+      return;
+    }
+    seterror("");
     try {
       const res = await axios.post("http://localhost:5000/api/join_room", { name, roomId });
-      navigate(`/room/${res.data.roomId}`);
+      navigate("/chatroom", { state: { name } });
     } catch (err) {
       seterror("Error joining room. Please try again.");
     }
@@ -68,7 +89,7 @@ export default function Home() {
           >
             <button
               className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded w-full"
-              onClick={() => setmode('')}
+              onClick={() => {setmode(''); seterror('')}}
             >
               ← Back
             </button>
@@ -104,7 +125,7 @@ export default function Home() {
           >
             <button
               className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded w-full"
-              onClick={() => setmode('')}
+              onClick={() => {setmode(''); seterror('')}}
             >
               ← Back
             </button>
