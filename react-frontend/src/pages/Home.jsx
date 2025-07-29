@@ -18,7 +18,7 @@ export default function Home() {
     }
     seterror("");
     try {
-      const res = await axios.post("http://localhost:5000/api/create_room", { name });
+      const res = await axios.post("https://chatmate-fsag.onrender.com/api/create_room", { name });
       const roomId = res.data.roomId;
       navigate("/chatroom", { state: { name, roomId } });
     } catch (err) {
@@ -42,7 +42,7 @@ export default function Home() {
     }
     seterror("");
     try {
-      const res = await axios.post("http://localhost:5000/api/join_room", { name, roomId });
+      const res = await axios.post("https://chatmate-fsag.onrender.com/api/join_room", { name, roomId });
       navigate("/chatroom", { state: { name, roomId } });
     } catch (err) {
       seterror("Error joining room. Please try again.");

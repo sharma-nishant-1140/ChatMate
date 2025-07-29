@@ -1,6 +1,6 @@
 import { io } from "socket.io-client";
 const URL = import.meta.env.PROD
-  ? "wss://chatmate.onrender.com"
+  ? "https://chatmate-fsag.onrender.com/"
   : "http://localhost:5000";
 
 export const createsocket = (name, room) => {
