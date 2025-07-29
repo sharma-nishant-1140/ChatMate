@@ -17,7 +17,7 @@ export default function Home() {
       return;
     }
     seterror("");
-    try { 
+    try {
       const res = await axios.post("http://localhost:5000/api/create_room", { name });
       const roomId = res.data.roomId;
       navigate("/chatroom", { state: { name, roomId } });
@@ -52,7 +52,11 @@ export default function Home() {
   const transition = { duration: 0.4, ease: 'easeInOut' };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-900 text-white px-4 relative overflow-hidden">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white px-4">
+      <h3 className="text-2xl md:text-3xl font-semibold mb-8 text-center z-10">
+        Welcome to <span className="text-blue-400">ChatMate</span>
+      </h3>
+
       <AnimatePresence mode="wait">
         {!mode && (
           <motion.div
@@ -61,7 +65,7 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -50 }}
             transition={transition}
-            className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-12 w-full max-w-4xl absolute"
+            className="flex flex-col md:flex-row justify-center gap-6 md:gap-12 w-full max-w-4xl"
           >
             <button
               className="bg-gray-800 hover:bg-gray-700 text-white py-6 px-8 rounded w-full md:w-64 h-32 md:h-64 border border-white text-xl"
@@ -78,18 +82,18 @@ export default function Home() {
           </motion.div>
         )}
 
-        {mode === 'create' && (
+        {(mode === 'create' || mode === 'join') && (
           <motion.div
-            key="create"
-            initial={{ opacity: 0, x: 100 }}
+            key={mode}
+            initial={{ opacity: 0, x: mode === 'create' ? 100 : -100 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -100 }}
+            exit={{ opacity: 0, x: mode === 'create' ? -100 : 100 }}
             transition={transition}
-            className="flex flex-col items-center gap-6 w-full max-w-sm absolute"
+            className="flex flex-col items-center gap-6 w-full max-w-sm"
           >
             <button
               className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded w-full"
-              onClick={() => {setmode(''); seterror('')}}
+              onClick={() => { setmode(''); seterror('') }}
             >
               ← Back
             </button>
@@ -102,56 +106,25 @@ export default function Home() {
                 onChange={(e) => setname(e.target.value)}
                 className="p-2 rounded text-black"
               />
+              {mode === 'join' && (
+                <>
+                  <label htmlFor="code">Enter Code:</label>
+                  <input
+                    type="text"
+                    name="code"
+                    id="code"
+                    onChange={(e) => setroomId(e.target.value)}
+                    className="p-2 rounded text-black"
+                  />
+                </>
+              )}
               <button
                 type="button"
-                onClick={handleCreateRoom}
-                className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded"
+                onClick={mode === 'create' ? handleCreateRoom : handleJoinRoom}
+                className={`${mode === 'create' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'
+                  } text-white py-2 px-4 rounded`}
               >
-                Create Room
-              </button>
-              {error && <p className="text-red-400">{error}</p>}
-            </form>
-          </motion.div>
-        )}
-
-        {mode === 'join' && (
-          <motion.div
-            key="join"
-            initial={{ opacity: 0, x: -100 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 100 }}
-            transition={transition}
-            className="flex flex-col items-center gap-6 w-full max-w-sm absolute"
-          >
-            <button
-              className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded w-full"
-              onClick={() => {setmode(''); seterror('')}}
-            >
-              ← Back
-            </button>
-            <form className="flex flex-col gap-4 border border-white p-6 rounded w-full">
-              <label htmlFor="name">Enter Name:</label>
-              <input
-                type="text"
-                name="name"
-                id="name"
-                onChange={(e) => setname(e.target.value)}
-                className="p-2 rounded text-black"
-              />
-              <label htmlFor="code">Enter Code:</label>
-              <input
-                type="text"
-                name="code"
-                id="code"
-                onChange={(e) => setroomId(e.target.value)}
-                className="p-2 rounded text-black"
-              />
-              <button
-                type="button"
-                onClick={handleJoinRoom}
-                className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded"
-              >
-                Join Room
+                {mode === 'create' ? 'Create Room' : 'Join Room'}
               </button>
               {error && <p className="text-red-400">{error}</p>}
             </form>
