@@ -1,6 +1,11 @@
 services:
   - type: web
-    name: flask-chat
+    name: chatmate
     env: python
-    buildCommand: ""
-    startCommand: python app.py
+    buildCommand: cd client && npm install && npm run build
+    startCommand: gunicorn server.app:app --worker-class eventlet -w 1 --bind 0.0.0.0:$PORT
+    buildFilter:
+      paths: ["client/", "server/", "requirements.txt"]
+    envVars:
+      - key: FLASK_ENV
+        value: production
