@@ -4,7 +4,7 @@ const URL = import.meta.env.PROD
   : "http://localhost:5000";
 
 export const createsocket = (name, room) => {
-  return io("http://localhost:5000", {
+  return io(URL, {
     transports: ["websocket", "polling"],
     auth: { name, room },
   });
