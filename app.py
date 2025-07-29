@@ -16,7 +16,7 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
 CORS(app, supports_credentials=True)
 
-socket = SocketIO(app, async_mode='eventlet', cors_allowed_origins=["http://localhost:5173", "https://chatmate.netlify.app"])
+socket = SocketIO(app, async_mode='eventlet', cors_allowed_origins=["http://localhost:5173", "https://chatmate-1.netlify.app"])
 
 rooms = {}
 socket_users = {}
