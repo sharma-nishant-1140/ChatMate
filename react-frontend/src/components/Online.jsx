@@ -1,6 +1,6 @@
 const Online = ({ count = 0 }) => {
   return (
-    <span className="text-green-400">
+    <span className="w-1/3 text-green-400 tracking-wide">
       Online: {count}
     </span>
   );

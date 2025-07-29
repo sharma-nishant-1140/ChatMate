@@ -4,60 +4,65 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import Online from '../components/Online';
 import Chat from '../components/Chat';
 import Userboard from '../components/Userboard';
-import socket from "../socket";
+import {createsocket} from "../socket";
 
 const Chatroom = () => {
-    const location = useLocation();
+    const { state } = useLocation();
     const navigate = useNavigate();
-    const currentUser = { name: location.state?.name || location.state?.currentuser };
+    const { name, roomId } = state || {};
 
     const [users, setusers] = useState([]);
     const [onlinecount, setonlinecount] = useState(0);
     const [messages, setmessages] = useState([]);
+    const [socket, setSocket] = useState(null);
 
     useEffect(() => {
-        if (!currentUser.name) {
+        if (!name || !roomId) {
             navigate('/');
             return;
         }
 
-        socket.auth = { name: currentUser.name, room: "global" };
-        socket.connect();
-
-        socket.on("connect", () => {
-            socket.emit("join_room", { name: currentUser.name, room: "global" });
+        const newSocket = createsocket(name, roomId);
+        setSocket(newSocket);
+        
+        newSocket.on("connect", () => {
+            console.log("Connected to server");
+            console.log(name, roomId);
         });
 
-        socket.on("user_list", (userList) => {
+        newSocket.on("user_list", (userList) => {
             setusers(userList);
             setonlinecount(userList.length);
         });
 
-        socket.on("message", (message) => {
+        newSocket.on("message", (message) => {
             setmessages((prev) => [...prev, message]);
         });
 
-        socket.on("disconnect", () => {
+        newSocket.on("disconnect", () => {
             console.log("Disconnected from the server !");
         });
 
         return () => {
-            socket.disconnect();
+            newSocket.disconnect();
         };
-    }, [currentUser.name, navigate]);
+    }, [name, navigate]);
 
     const sendMessages = (message) => {
-        socket.emit("send_message", message);
+        socket.emit("message", message);
     };
 
     return (
         <div className="w-full h-screen flex flex-col bg-gray-950 text-white">
-            <div className="p-4 text-center text-sm bg-gray-800 shadow-md">
+            <div className="p-4 text-center flex justify-evenly text-sm bg-gray-800 shadow-md">
+                <div className='w-2/3 tracking-wide'>
+                    Room Code: {roomId}
+                </div>
                 <Online count={onlinecount} />
             </div>
             <div className="flex flex-1 overflow-hidden">
                 <div className="w-2/3 p-4 overflow-y-auto border-r border-gray-700">
-                    <Chat messages={messages} onSend={sendMessages} username={currentUser} />
+                    <Chat messages={messages} onSend={sendMessages} username={name} />
                 </div>
                 <div className="w-1/3 p-4 overflow-y-auto bg-gray-900">
                     <Userboard users={users} />

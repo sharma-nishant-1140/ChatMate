@@ -43,7 +43,7 @@ export default function Home() {
     seterror("");
     try {
       const res = await axios.post("http://localhost:5000/api/join_room", { name, roomId });
-      navigate("/chatroom", { state: { name } });
+      navigate("/chatroom", { state: { name, roomId } });
     } catch (err) {
       seterror("Error joining room. Please try again.");
     }

@@ -1,8 +1,8 @@
 import { io } from "socket.io-client";
 
-const socket = io("http://localhost:5000", {
-  transports: ['websocket'],
-  withCredentials: true,
-});
-
-export default socket;
+export const createsocket = (name, room) => {
+  return io("http://localhost:5000", {
+    transports: ["websocket", "polling"],
+    auth: { name, room },
+  });
+};

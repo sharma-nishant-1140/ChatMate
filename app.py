@@ -16,7 +16,8 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
 CORS(app, supports_credentials=True)
 
-socket = SocketIO(app, async_mode='eventlet', cors_allowed_origins="*")
+# socket = SocketIO(app, async_mode='eventlet', cors_allowed_origins="*")
+socket = SocketIO(app, cors_allowed_origins=["http://localhost:5173"])
 
 rooms = {}
 socket_users = {}
@@ -34,13 +35,13 @@ def home():
 @app.route('/api/create_room', methods=['POST'])
 def create_room():
     name = request.json.get('name')
-    print("Creating room for:", name)
     if not name:
         return jsonify({"error": "Name is required !"}), 400
 
     code = generate_code(list(rooms.keys()))
     rooms[code] = {"members": 0, "messages": []}
 
+    print("Creating room for:", name)
     return jsonify({"roomId": code})
 
 @app.route('/api/join_room', methods=['POST'])
@@ -48,14 +49,14 @@ def join_room_route():
     name = request.json.get('name')
     if not name:
         return jsonify({"error": "Name is required !"}), 400
-
-    code = request.json.get('code')
+    print(rooms)
+    code = request.json.get('roomId')
     if not code:
         return jsonify({"error": "Room code is required !"}), 400
     if code not in rooms:
         return jsonify({"error": "Room code does not exist !"}), 400
 
-    return jsonify({"roomId": code})
+    return jsonify({"name" : name, "roomId": code})
 
 @socket.on("connect")
 def connect(auth):
@@ -76,11 +77,10 @@ def connect(auth):
 
     usernames = [user["name"] for sid, user in socket_users.items() if user["room"] == room]
     socket.emit("user_list", usernames, to=room)
-
     socket.emit("update_online", {"online": rooms[room]["members"]}, to=room)
     send({"name": name, "message": "has joined the room !"}, to=room)
 
-    print(f"{name} joined room {room}!")
+    print(f"✅ {name} joined room {room}!")
 
 @socket.on("disconnect")
 def disconnect():
@@ -123,45 +123,4 @@ def message(data):
     rooms[room]["messages"].append(content)
 
 if __name__ == "__main__":
-    socket.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
-
-
-# @app.route('/', methods=['GET','POST'])
-# def home(): 
-#     session.clear()
-#     if request.method == 'POST':
-#         name = request.form.get('name')
-#         code = request.form.get('code')
-#         join = request.form.get('join', False)
-#         create = request.form.get('create', False)
-
-#         if not name:
-#             return render_template("home.html", error="Please Enter Name !", code = code, name = name)
-
-#         if create != False:
-#             code = generate_code(list(rooms.keys()))
-#             new_room = {
-#                 "members" : 0,
-#                 "messages" : []
-#             }
-#             rooms[code] = new_room
-
-#         if join != False:
-#             if code == "":
-#                 return render_template("home.html", error="Please Enter code !", name = name)
-#             if code not in rooms.keys():
-#                 return render_template("home.html", error="Code Invalid !", name = name)
-        
-#         session['name'] = name
-#         session['room'] = code
-#         print(session)
-#         return redirect(url_for("chatroom"))
-        
-#     return render_template('home.html')
-
-# @app.route('/room')
-# def chatroom():
-#     room = session.get('room')
-#     if room == None or session.get('name') == None or room not in rooms:
-#         return redirect(url_for("home"))
-#     return render_template('chatroom.html', code = room, online = rooms[room]["members"], messages=rooms[room]["messages"])
+    socket.run(app, port=int(os.environ.get("PORT", 5000)), debug=True)
